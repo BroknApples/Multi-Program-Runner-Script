@@ -3,14 +3,16 @@ import sys
 
 from PyQt6.QtWidgets import QApplication
 
-from graphics import Window
+from main_window import MainWindow
 
 ######################### MAIN CODE #########################
 
-# Create QApplication and QWidget Setup
+# Create QApplication and do QMainWindow Setup
 app = QApplication(sys.argv)
-window = Window(1920, 1080, "Test App")
-window.show()
+main_window = MainWindow("Test App", 500, 600)
+main_window.SetWidgets()
+
+main_window.show()
 
 # Loop Program
 sys.exit(app.exec())
