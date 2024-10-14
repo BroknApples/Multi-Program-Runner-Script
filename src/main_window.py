@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
   QWidget,
   QToolBar,
   QStatusBar,
+  QMenu,
   QMenuBar,
   QLabel,
   QVBoxLayout,
@@ -21,6 +22,9 @@ from PyQt6.QtGui import (
 
 from config import *
 
+# STYLE SHEET EX:
+#self.setStyleSheet("background-color: #DC06C4; color: white;")
+
 ######################### MAIN_WINDOW CODE #########################
 
 ######### Window Class #########
@@ -32,10 +36,18 @@ class MainWindow(QMainWindow):
     try:
       super(MainWindow, self).__init__()
 
+      # Set style
       self.setMinimumSize(kWindowMinWidth, kWindowMinHeight)
       self.setMaximumSize(kWindowMaxWidth, kWindowMaxHeight)
       self.setBaseSize(width, height)
       self.setWindowTitle(name)
+      self.app_icon = QIcon("bin/gui/logo_16x16.ico")
+      self.setWindowIcon(self.app_icon)
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
+      self.setStyleSheet("""
+            background-color: #222222; /* Dark gray background */
+            color: white;" /* White text color */
+            """)
 
       # Store Width Height and Name
       self.width_ = width
@@ -44,27 +56,63 @@ class MainWindow(QMainWindow):
 
       # Undo and Redo Stacks
       self.undo_stack = []
+      self.undo_stack_size = 0
       self.redo_stack = []
+      self.redo_stack_size = 0
     except:
       print("Error Creating the Main Window.\n")
       return
   
+
   def SetWidgets(self):
     self.__SetMenuBar()
     # add more here
     self.__SetStatusBar()
 
-  # Setup Menu Bar at top of screen - May change this function to take a 2d array 
-  # of data and parse in loop instead of directly writing everything
+  # Setup Menu Bar at top of screen
   def __SetMenuBar(self):
-    menu = self.menuBar()
+    menu_bar = self.menuBar()
 
     ########## Style ##########
+    menu_bar.setStyleSheet("""
+            QMenuBar {
+                background-color: #252525; /* Dark gray background */
+                color: white; /* White text color */
+                border: 1px solid #2A2A2A;
+                padding: 3px 3px;
+            }
 
+            QMenuBar::item {
+                padding: 4px 13px;
+                border-radius: 5px;
+            }
+
+            QMenuBar::item:selected {
+                background-color: #444444; /* Light gray background on hover */
+            }
+
+            QMenu {
+                background-color: #333333; /* Dark gray background for the menu */
+                border: 1px solid #555555;
+                border-radius: 5px;
+            }
+
+            QMenu::item {
+                border: 1px solid #373737;
+                border-radius: 5px;
+                padding: 5px 25px;
+            }
+
+            QMenu::item:selected {
+                background-color: #444444; /* Light gray background on hover */
+                border-radius: 5px;
+            }
+        """)
+    
     ######## END Style ########
 
     ########## File ##########
-    file_menu = menu.addMenu("&File")
+    file_menu = menu_bar.addMenu("&File")
 
     new_file = QAction("New File", file_menu)
     new_file.setStatusTip("Create and open new file")
@@ -99,7 +147,7 @@ class MainWindow(QMainWindow):
     ######## END File ########
 
     ######## Settings ########
-    settings_menu = menu.addMenu("&Settings")
+    settings_menu = menu_bar.addMenu("&Settings")
 
     open_settings_page = QAction("Settings", settings_menu)
     open_settings_page.setStatusTip("Open default page in the settings menu")
@@ -127,7 +175,7 @@ class MainWindow(QMainWindow):
     ###### END Settings ######
 
     ########## Help ##########
-    help_menu = menu.addMenu("&Help")
+    help_menu = menu_bar.addMenu("&Help")
 
     show_keyboard_shortcut_reference = QAction("Keyboard Shortcut Reference", help_menu)
     show_keyboard_shortcut_reference.setStatusTip("Open a page containing all keyboard shortcuts")
@@ -161,12 +209,31 @@ class MainWindow(QMainWindow):
     ######## END Help ########
 
     ####### Undo & Redo #######
-    undo = menu.addAction("&Undo")
-    undo.triggered.connect(self.__Undo)
+    undo_button = menu_bar.addAction("&Undo")
+    undo_status_tip = "Undo Previous Action: "
+    if len(self.undo_stack) > 0:
+      undo_status_tip += self.undo_stack[-1]
+    else:
+      undo_status_tip += "N/A"
+    undo_button.setStatusTip(undo_status_tip)
+    undo_button.triggered.connect(self.__Undo)
 
-    redo = menu.addAction("&Redo")
-    redo.triggered.connect(self.__Redo)
+    redo_button = menu_bar.addAction("&Redo")
+    redo_status_tip = "Redo Previous Action: "
+    if len(self.undo_stack) > 0:
+      redo_status_tip += self.undo_stack[-1]
+    else:
+      redo_status_tip += "N/A"
+    redo_button.setStatusTip(redo_status_tip)
+    redo_button.triggered.connect(self.__Redo)
     ##### END Undo & Redo #####
+
+    ##### Minimize & Exit #####
+    # minimize_button = menu_bar.addAction("&-")
+    # minimize_button.triggered.connect(self.showMinimized)
+    # exit_button = menu_bar.addAction("&X")
+    # exit_button.triggered.connect(self.close)
+    ### END Minimize & Exit ###
     
 
   # Setup status bar that give you tooltips
