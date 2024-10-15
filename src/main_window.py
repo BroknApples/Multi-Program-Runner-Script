@@ -22,9 +22,6 @@ from PyQt6.QtGui import (
 
 from config import *
 
-# STYLE SHEET EX:
-#self.setStyleSheet("background-color: #DC06C4; color: white;")
-
 ######################### MAIN_WINDOW CODE #########################
 
 ######### Window Class #########
@@ -45,8 +42,8 @@ class MainWindow(QMainWindow):
       self.setWindowIcon(self.app_icon)
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
       self.setStyleSheet("""
-            background-color: #222222; /* Dark gray background */
-            color: white;" /* White text color */
+              background-color: #222222; /* Dark gray background */
+              color: white; /* White text color */
             """)
 
       # Store Width Height and Name
@@ -107,7 +104,7 @@ class MainWindow(QMainWindow):
                 background-color: #444444; /* Light gray background on hover */
                 border-radius: 5px;
             }
-        """)
+          """)
     
     ######## END Style ########
 
@@ -233,8 +230,7 @@ class MainWindow(QMainWindow):
     # minimize_button.triggered.connect(self.showMinimized)
     # exit_button = menu_bar.addAction("&X")
     # exit_button.triggered.connect(self.close)
-    ### END Minimize & Exit ###
-    
+    ### END Minimize & Exit ### 
 
   # Setup status bar that give you tooltips
   def __SetStatusBar(self):
