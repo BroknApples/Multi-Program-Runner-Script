@@ -3,26 +3,24 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
   QMainWindow,
   QWidget,
-  QToolBar,
   QStatusBar,
-  QMenu,
-  QMenuBar,
-  QLabel,
+  QDockWidget,
   QVBoxLayout,
-  QCheckBox,
-  QPushButton,
-  QSlider,
-  QLineEdit,
-  QProgressBar
+  QPushButton
 )
 from PyQt6.QtGui import (
   QIcon,
   QAction
 )
 
-from config import *
-
 ######################### MAIN_WINDOW CODE #########################
+
+WINDOW_MAX_WIDTH = 750
+WINDOW_MAX_HEIGHT = 900
+WINDOW_MIN_WIDTH = 416
+WINDOW_MIN_HEIGHT = 500
+
+SIDEBAR_WIDTH = 75
 
 ######### Window Class #########
 
@@ -34,17 +32,17 @@ class MainWindow(QMainWindow):
       super(MainWindow, self).__init__()
 
       # Set style
-      self.setMinimumSize(kWindowMinWidth, kWindowMinHeight)
-      self.setMaximumSize(kWindowMaxWidth, kWindowMaxHeight)
+      self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
+      self.setMaximumSize(WINDOW_MAX_WIDTH, WINDOW_MAX_HEIGHT)
       self.setBaseSize(width, height)
       self.setWindowTitle(name)
       self.app_icon = QIcon("bin/gui/logo_16x16.ico")
       self.setWindowIcon(self.app_icon)
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
       self.setStyleSheet("""
-              background-color: #222222; /* Dark gray background */
-              color: white; /* White text color */
-            """)
+        background-color: #222222; /* Dark gray background */
+        color: white; /* White text color */
+      """)
 
       # Store Width Height and Name
       self.width_ = width
@@ -62,49 +60,54 @@ class MainWindow(QMainWindow):
   
 
   def SetWidgets(self):
+    self.__SetCentralWidget()
     self.__SetMenuBar()
-    # add more here
+    self.__SetSideBar()
+    self.__SetContentBrowser()
     self.__SetStatusBar()
 
-  # Setup Menu Bar at top of screen
+  def __SetCentralWidget(self):
+    widget = QWidget()
+    self.setCentralWidget(widget)
+
   def __SetMenuBar(self):
     menu_bar = self.menuBar()
 
     ########## Style ##########
     menu_bar.setStyleSheet("""
-            QMenuBar {
-                background-color: #252525; /* Dark gray background */
-                color: white; /* White text color */
-                border: 1px solid #2A2A2A;
-                padding: 3px 3px;
-            }
+      QMenuBar {
+          background-color: #252525; /* Dark gray background */
+          color: white; /* White text color */
+          border: 1px solid #2A2A2A;
+          padding: 3px 3px;
+      }
 
-            QMenuBar::item {
-                padding: 4px 13px;
-                border-radius: 5px;
-            }
+      QMenuBar::item {
+          padding: 4px 13px;
+          border-radius: 5px;
+      }
 
-            QMenuBar::item:selected {
-                background-color: #444444; /* Light gray background on hover */
-            }
+      QMenuBar::item:selected {
+          background-color: #444444; /* Light gray background on hover */
+      }
 
-            QMenu {
-                background-color: #333333; /* Dark gray background for the menu */
-                border: 1px solid #555555;
-                border-radius: 5px;
-            }
+      QMenu {
+          background-color: #333333; /* Dark gray background for the menu */
+          border: 1px solid #555555;
+          border-radius: 5px;
+      }
 
-            QMenu::item {
-                border: 1px solid #373737;
-                border-radius: 5px;
-                padding: 5px 25px;
-            }
+      QMenu::item {
+          border: 1px solid #373737;
+          border-radius: 5px;
+          padding: 5px 25px;
+      }
 
-            QMenu::item:selected {
-                background-color: #444444; /* Light gray background on hover */
-                border-radius: 5px;
-            }
-          """)
+      QMenu::item:selected {
+          background-color: #444444; /* Light gray background on hover */
+          border-radius: 5px;
+      }
+    """)
     
     ######## END Style ########
 
@@ -231,15 +234,43 @@ class MainWindow(QMainWindow):
     # exit_button = menu_bar.addAction("&X")
     # exit_button.triggered.connect(self.close)
     ### END Minimize & Exit ### 
+    
+  def  __SetSideBar(self):
+    self.sidebar = QDockWidget("Toolbar", self)
+    self.sidebar.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
+    self.sidebar.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
+    self.sidebar.setFixedWidth(SIDEBAR_WIDTH)
 
-  # Setup status bar that give you tooltips
+    widget = QWidget()
+    vbox = QVBoxLayout()
+    vbox.addWidget(QPushButton("+"))
+    vbox.addWidget(QPushButton("hi"))
+    vbox.addWidget(QPushButton("hi"))
+    vbox.addWidget(QPushButton("hi"))
+    widget.setLayout(vbox)
+    self.sidebar.setWidget(widget)
+    
+    self.sidebar.setStyleSheet("""
+    QDockWidget {
+        background-color: lightblue;
+        border: 1px solid gray;
+    }
+
+    QDockWidget::title {
+        background-color: darkblue;
+        color: white;
+        padding: 5px;
+    }
+""")
+
+    self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar)
+
+  def __SetContentBrowser(self):
+    pass
+
   def __SetStatusBar(self):
     status_bar = QStatusBar(self)
     self.setStatusBar(status_bar)
-
-
-
-
   ############################################################################
   ############################# Helper Functions #############################
   ############################################################################

@@ -1,0 +1,37 @@
+in settings.py:
+
+# helper classes
+class defaultTheme():
+  default values
+
+class darkTheme(defaultTheme):
+  add new values - anything not changed will be default
+
+etc.
+
+class Resolution():
+  def __init__(self):
+    default values
+
+  def Init(self):
+    override default values
+
+class keyboardShortcuts():
+  read from file: defaults will be overriden in file, not during startup
+
+
+# settings class
+class settings():
+  def __init__(self, path/to/config.ini):
+    Resolution.
+    Stylesheet.
+
+  def Init(self): # override defaults
+    self.__getResolution()
+    self.__getStylesheet()
+    self.__getKeyboardShortcuts()
+
+main_window.py:
+  settings = Settings()
+  settings.Init()
+  settings.resolution.getSomeResolution()
