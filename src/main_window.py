@@ -1,4 +1,6 @@
 ######################### IMPORTS #########################
+import time
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
   QMainWindow,
@@ -13,14 +15,12 @@ from PyQt6.QtGui import (
   QAction
 )
 
+from settings import (
+  UserSettings,
+  Stylesheet
+)
+
 ######################### MAIN_WINDOW CODE #########################
-
-WINDOW_MAX_WIDTH = 750
-WINDOW_MAX_HEIGHT = 900
-WINDOW_MIN_WIDTH = 416
-WINDOW_MIN_HEIGHT = 500
-
-SIDEBAR_WIDTH = 75
 
 ######### Window Class #########
 
@@ -30,18 +30,21 @@ class MainWindow(QMainWindow):
   def __init__(self, name, width, height):
     try:
       super(MainWindow, self).__init__()
+      
+      self.settings = UserSettings()
+      self.stylesheet = Stylesheet()
 
       # Set style
-      self.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
-      self.setMaximumSize(WINDOW_MAX_WIDTH, WINDOW_MAX_HEIGHT)
+      self.setMinimumSize(self.settings.WINDOW_MIN_WIDTH, self.settings.WINDOW_MIN_HEIGHT)
+      self.setMaximumSize(self.settings.WINDOW_MAX_WIDTH, self.settings.WINDOW_MAX_HEIGHT)
       self.setBaseSize(width, height)
       self.setWindowTitle(name)
       self.app_icon = QIcon("bin/gui/logo_16x16.ico")
       self.setWindowIcon(self.app_icon)
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
       self.setStyleSheet("""
-        background-color: #222222; /* Dark gray background */
-        color: white; /* White text color */
+        background-color: """ + f'{self.stylesheet.background_color};' + """
+        color: """ f'{self.stylesheet.text_color};' """
       """)
 
       # Store Width Height and Name
@@ -50,10 +53,10 @@ class MainWindow(QMainWindow):
       self.name_ = name
 
       # Undo and Redo Stacks
-      self.undo_stack = []
-      self.undo_stack_size = 0
-      self.redo_stack = []
-      self.redo_stack_size = 0
+      self._undo_stack = []
+      self._undo_stack_size = 0
+      self._redo_stack = []
+      self._redo_stack_size = 0
     except:
       print("Error Creating the Main Window.\n")
       return
@@ -76,9 +79,9 @@ class MainWindow(QMainWindow):
     ########## Style ##########
     menu_bar.setStyleSheet("""
       QMenuBar {
-          background-color: #252525; /* Dark gray background */
+          background-color: #252525; 
           color: white; /* White text color */
-          border: 1px solid #2A2A2A;
+          border: 1px solid #2a2a2a;
           padding: 3px 3px;
       }
 
@@ -88,7 +91,7 @@ class MainWindow(QMainWindow):
       }
 
       QMenuBar::item:selected {
-          background-color: #444444; /* Light gray background on hover */
+          background-color: """ + f'#444444;' + """
       }
 
       QMenu {
@@ -211,8 +214,8 @@ class MainWindow(QMainWindow):
     ####### Undo & Redo #######
     undo_button = menu_bar.addAction("&Undo")
     undo_status_tip = "Undo Previous Action: "
-    if len(self.undo_stack) > 0:
-      undo_status_tip += self.undo_stack[-1]
+    if len(self._undo_stack) > 0:
+      undo_status_tip += self._undo_stack[self._undo_stack_size - 1]
     else:
       undo_status_tip += "N/A"
     undo_button.setStatusTip(undo_status_tip)
@@ -220,8 +223,8 @@ class MainWindow(QMainWindow):
 
     redo_button = menu_bar.addAction("&Redo")
     redo_status_tip = "Redo Previous Action: "
-    if len(self.undo_stack) > 0:
-      redo_status_tip += self.undo_stack[-1]
+    if len(self._redo_stack) > 0:
+      redo_status_tip += self._redo_stack[self._redo_stack_size - 1]
     else:
       redo_status_tip += "N/A"
     redo_button.setStatusTip(redo_status_tip)
@@ -235,11 +238,13 @@ class MainWindow(QMainWindow):
     # exit_button.triggered.connect(self.close)
     ### END Minimize & Exit ### 
     
+  def cool():
+    print("cool bro")
   def  __SetSideBar(self):
     self.sidebar = QDockWidget("Toolbar", self)
     self.sidebar.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
     self.sidebar.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
-    self.sidebar.setFixedWidth(SIDEBAR_WIDTH)
+    self.sidebar.setFixedWidth(self.settings.SIDEBAR_WIDTH)
 
     widget = QWidget()
     vbox = QVBoxLayout()
@@ -247,25 +252,34 @@ class MainWindow(QMainWindow):
     vbox.addWidget(QPushButton("hi"))
     vbox.addWidget(QPushButton("hi"))
     vbox.addWidget(QPushButton("hi"))
+    vbox.insertStretch(-1, 1) # remove spacing between toolbar options
     widget.setLayout(vbox)
     self.sidebar.setWidget(widget)
     
+    widget.setStyleSheet("""
+      QVBoxLayout {
+        background-color: 
+      }              
+    """)
+    
     self.sidebar.setStyleSheet("""
-    QDockWidget {
-        background-color: lightblue;
-        border: 1px solid gray;
-    }
+      QDockWidget {
+          background-color: lightblue;
+          border: 1px solid gray;
+      }
 
-    QDockWidget::title {
-        background-color: darkblue;
-        color: white;
-        padding: 5px;
-    }
-""")
+      QDockWidget::title {
+          background-color: darkblue;
+          color: white;
+          padding: 5px;
+      }
+    """)
 
     self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar)
 
   def __SetContentBrowser(self):
+    time.sleep(5)
+    self._undo_stack.insert(1)
     pass
 
   def __SetStatusBar(self):
