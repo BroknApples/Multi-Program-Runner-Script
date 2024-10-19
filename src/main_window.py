@@ -87,9 +87,9 @@ class MainWindow(QMainWindow):
     ########## Style ##########
     menu_bar.setStyleSheet("""
       QMenuBar {
-          background-color: """ + f'{self.stylesheet.menu_color};' + """
+          background-color: """ + f'{self.stylesheet.menu_bar_color};' + """
+          border: 1px solid """ + f'{self.stylesheet.menu_bar_border};' + """
           color: """ + f'{self.stylesheet.text_color};' + """
-          border: 1px solid """ + f'{self.stylesheet.menu_border};' + """
           padding: 3px 3px;
       }
 
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
       }
 
       QMenuBar::item:selected {
-          background-color: """ + f'{self.stylesheet.menu_item_highlighted};' + """
+          background-color: """ + f'{self.stylesheet.item_color};' + """
       }
 
       QMenu {
@@ -246,54 +246,86 @@ class MainWindow(QMainWindow):
     ### END Minimize & Exit ### 
     
   def  __SetSideBar(self):
-    self.sidebar = QDockWidget("Toolbar", self)
+    self.sidebar = QDockWidget('Tools', self)
     self.sidebar.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
     self.sidebar.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
     self.sidebar.setFixedWidth(self.settings.SIDEBAR_WIDTH)
 
     widget = QWidget()
-    vbox = QVBoxLayout()
-    vbox.addWidget(QPushButton("+"))
-    vbox.addWidget(QPushButton("hi"))
-    vbox.addWidget(QPushButton("hi"))
-    vbox.addWidget(QPushButton("hi"))
+    vbox = QVBoxLayout(widget)
+
+    ######### Add Item #########
+    add_item = QPushButton("+")
+    add_item.setStatusTip('Add a new item.')
+    vbox.addWidget(add_item)
+    ######### Add Item #########
+
+    ######## Remove Item ########
+    remove_item = QPushButton("-")
+    remove_item.setStatusTip('Remove selected item.')
+    vbox.addWidget(remove_item)
+    ######## Remove Item ########
+
+    ######## VBOX Styles ########
     vbox.insertStretch(-1, 1) # remove spacing between toolbar options
-    widget.setLayout(vbox)
-    self.sidebar.setWidget(widget)
-    
-    widget.setStyleSheet("""
-      QVBoxLayout {
-        background-color: 
-      }              
-    """)
-    
-    # TODO: ADD STYLES
-    self.sidebar.setStyleSheet("""
-      QDockWidget {
-          background-color: lightblue;
-          border: 1px solid gray;
+
+    ######## VBOX Styles ########
+
+    vbox.parent().setStyleSheet("""
+      QWidget {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-right: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-left: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        padding: 5px;
+        font-size: 15px;
+        text-align: center;
+      }
+                         
+      QPushButton {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-radius: 4px;
       }
 
+      QPushButton:hover {
+        background-color: """ + f'{self.stylesheet.item_color};' + """
+      }
+
+      QPushButton:pressed {
+        background-color: """ + f'{self.stylesheet.item_pressed};' + """
+      }
+    """)
+
+    self.sidebar.setWidget(vbox.parent())
+
+    self.sidebar.setStyleSheet("""
       QDockWidget::title {
-          background-color: darkblue;
-          color: white;
-          padding: 5px;
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-right: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-left: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        text-align: center;
+        padding: 5px 0px
       }
     """)
 
     self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar)
 
   def __SetContentBrowser(self):
-    time.sleep(5)
-    self._undo_stack.insert(-1, 1)
     pass
 
   def __SetStatusBar(self):
     status_bar = QStatusBar(self)
+    status_bar.setStyleSheet("""
+      QStatusBar {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-top: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+      }
+    """)
     self.setStatusBar(status_bar)
-  ############################################################################
-  ############################# Helper Functions #############################
-  ############################################################################
+
+############################################################################
+############################# Helper Functions #############################
+############################################################################
   ############# Menu Bar - File #############
   def __NewFile(button_state):
     print("Creating a new file")
