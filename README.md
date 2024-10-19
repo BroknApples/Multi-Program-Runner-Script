@@ -15,6 +15,7 @@ TODO: Add stuff here
 1. Download latest release
 2. optional: create shortcut to folder
 3. Run exe file
+
 **From source files**
 1. Clone project to machine
 2. optional: create shortcut to folder
