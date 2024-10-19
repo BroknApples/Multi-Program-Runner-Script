@@ -4,7 +4,7 @@ class Stylesheet():
     self.text_color = 'white'
     self.menu_bar_color = '#272727'
     self.menu_bar_border = '#444444'
-    self.menu_color = '#1e1e1e'
+    self.menu_color = '#202020'
     self.menu_border = '#444444'
     self.item_color = '#333333'
     self.item_border = '#404040'
