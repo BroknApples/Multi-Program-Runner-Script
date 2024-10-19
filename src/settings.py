@@ -7,6 +7,7 @@ def parseConfigIni() -> dict[str, str]:
   key = value = ''
   equal_sign: bool = False
   comment: bool = False
+  
   for ch in text:
     if (ch == '/' or comment): # current section of text is a comment
       if (ch == '\n'):
