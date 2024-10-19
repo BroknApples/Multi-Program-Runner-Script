@@ -1,6 +1,4 @@
 ######################### IMPORTS #########################
-import time
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
   QMainWindow,
@@ -16,6 +14,7 @@ from PyQt6.QtGui import (
 )
 
 from settings import (
+  parseConfigIni,
   UserSettings,
   Stylesheet
 )
@@ -30,13 +29,23 @@ class MainWindow(QMainWindow):
   def __init__(self, name, width, height):
     try:
       super(MainWindow, self).__init__()
-      
-      self.settings = UserSettings()
-      self.stylesheet = Stylesheet()
-
+    except RuntimeError:
+      print("Error creating main window.")
+      return
+    
+    try:
+      config = parseConfigIni()
+      print(config)
+      self.settings = UserSettings(config)
+      self.stylesheet = Stylesheet(config)
+    except ValueError:
+      print("Error setting MainWindow member variables.")
+      return
+    
+    try:
       # Set style
-      self.setMinimumSize(self.settings.WINDOW_MIN_WIDTH, self.settings.WINDOW_MIN_HEIGHT)
-      self.setMaximumSize(self.settings.WINDOW_MAX_WIDTH, self.settings.WINDOW_MAX_HEIGHT)
+      self.setMinimumSize(self.settings.window_min_width, self.settings.window_min_height)
+      self.setMaximumSize(self.settings.window_max_width, self.settings.window_max_height)
       self.setBaseSize(width, height)
       self.setWindowTitle(name)
       self.app_icon = QIcon("bin/gui/logo_16x16.ico")
@@ -44,21 +53,21 @@ class MainWindow(QMainWindow):
         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
       self.setStyleSheet("""
         background-color: """ + f'{self.stylesheet.background_color};' + """
-        color: """ f'{self.stylesheet.text_color};' """
+        color: """ f'{self.stylesheet.text_color};' + """
       """)
 
       # Store Width Height and Name
-      self.width_ = width
-      self.height_ = height
-      self.name_ = name
+      self.width_m = width
+      self.height_m = height
+      self.name_m = name
 
       # Undo and Redo Stacks
       self._undo_stack = []
       self._undo_stack_size = 0
       self._redo_stack = []
       self._redo_stack_size = 0
-    except:
-      print("Error Creating the Main Window.\n")
+    except ValueError:
+      print("Error Setting Style.")
       return
   
 
@@ -79,9 +88,9 @@ class MainWindow(QMainWindow):
     ########## Style ##########
     menu_bar.setStyleSheet("""
       QMenuBar {
-          background-color: #252525; 
-          color: white; /* White text color */
-          border: 1px solid #2a2a2a;
+          background-color: """ + f'{self.stylesheet.menu_bar_color};' + """
+          border: 1px solid """ + f'{self.stylesheet.menu_bar_border};' + """
+          color: """ + f'{self.stylesheet.text_color};' + """
           padding: 3px 3px;
       }
 
@@ -91,23 +100,22 @@ class MainWindow(QMainWindow):
       }
 
       QMenuBar::item:selected {
-          background-color: """ + f'#444444;' + """
+          background-color: """ + f'{self.stylesheet.item_color};' + """
       }
 
       QMenu {
-          background-color: #333333; /* Dark gray background for the menu */
-          border: 1px solid #555555;
+          background-color: """ + f'{self.stylesheet.item_color};' + """
+          border: 1px solid """ + f'{self.stylesheet.item_border};' + """
           border-radius: 5px;
+          padding: 2px 2px
       }
 
       QMenu::item {
-          border: 1px solid #373737;
-          border-radius: 5px;
           padding: 5px 25px;
       }
 
       QMenu::item:selected {
-          background-color: #444444; /* Light gray background on hover */
+          background-color: """ + f'{self.stylesheet.item_highlighted};' + """
           border-radius: 5px;
       }
     """)
@@ -213,22 +221,25 @@ class MainWindow(QMainWindow):
 
     ####### Undo & Redo #######
     undo_button = menu_bar.addAction("&Undo")
+    undo_button.triggered.connect(self.__Undo)
+
+    redo_button = menu_bar.addAction("&Redo")
+    redo_button.triggered.connect(self.__Redo)
+
+    # TODO: set these to update automatically as program runs
     undo_status_tip = "Undo Previous Action: "
-    if len(self._undo_stack) > 0:
+    if (self._undo_stack_size > 0):
       undo_status_tip += self._undo_stack[self._undo_stack_size - 1]
     else:
       undo_status_tip += "N/A"
     undo_button.setStatusTip(undo_status_tip)
-    undo_button.triggered.connect(self.__Undo)
 
-    redo_button = menu_bar.addAction("&Redo")
     redo_status_tip = "Redo Previous Action: "
-    if len(self._redo_stack) > 0:
+    if (self._redo_stack_size > 0):
       redo_status_tip += self._redo_stack[self._redo_stack_size - 1]
     else:
       redo_status_tip += "N/A"
     redo_button.setStatusTip(redo_status_tip)
-    redo_button.triggered.connect(self.__Redo)
     ##### END Undo & Redo #####
 
     ##### Minimize & Exit #####
@@ -238,56 +249,87 @@ class MainWindow(QMainWindow):
     # exit_button.triggered.connect(self.close)
     ### END Minimize & Exit ### 
     
-  def cool():
-    print("cool bro")
   def  __SetSideBar(self):
-    self.sidebar = QDockWidget("Toolbar", self)
+    self.sidebar = QDockWidget('Tools', self)
     self.sidebar.setFeatures(QDockWidget.DockWidgetFeature.DockWidgetMovable)
     self.sidebar.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
-    self.sidebar.setFixedWidth(self.settings.SIDEBAR_WIDTH)
+    self.sidebar.setFixedWidth(self.settings.sidebar_width)
 
     widget = QWidget()
-    vbox = QVBoxLayout()
-    vbox.addWidget(QPushButton("+"))
-    vbox.addWidget(QPushButton("hi"))
-    vbox.addWidget(QPushButton("hi"))
-    vbox.addWidget(QPushButton("hi"))
+    vbox = QVBoxLayout(widget)
+
+    ######### Add Item #########
+    add_item = QPushButton("+")
+    add_item.setStatusTip('Add a new item.')
+    vbox.addWidget(add_item)
+    ######### Add Item #########
+
+    ######## Remove Item ########
+    remove_item = QPushButton("-")
+    remove_item.setStatusTip('Remove selected item.')
+    vbox.addWidget(remove_item)
+    ######## Remove Item ########
+
+    ######## VBOX Styles ########
     vbox.insertStretch(-1, 1) # remove spacing between toolbar options
-    widget.setLayout(vbox)
-    self.sidebar.setWidget(widget)
-    
-    widget.setStyleSheet("""
-      QVBoxLayout {
-        background-color: 
-      }              
-    """)
-    
-    self.sidebar.setStyleSheet("""
-      QDockWidget {
-          background-color: lightblue;
-          border: 1px solid gray;
+
+    ######## VBOX Styles ########
+
+    vbox.parent().setStyleSheet("""
+      QWidget {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-right: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-left: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        padding: 5px;
+        font-size: 15px;
+        text-align: center;
+      }
+                         
+      QPushButton {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-radius: 4px;
       }
 
+      QPushButton:hover {
+        background-color: """ + f'{self.stylesheet.item_color};' + """
+      }
+
+      QPushButton:pressed {
+        background-color: """ + f'{self.stylesheet.item_pressed};' + """
+      }
+    """)
+
+    self.sidebar.setWidget(vbox.parent())
+
+    self.sidebar.setStyleSheet("""
       QDockWidget::title {
-          background-color: darkblue;
-          color: white;
-          padding: 5px;
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-right: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        border-left: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+        text-align: center;
+        padding: 5px 0px
       }
     """)
 
     self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.sidebar)
 
   def __SetContentBrowser(self):
-    time.sleep(5)
-    self._undo_stack.insert(1)
     pass
 
   def __SetStatusBar(self):
     status_bar = QStatusBar(self)
+    status_bar.setStyleSheet("""
+      QStatusBar {
+        background-color: """ + f'{self.stylesheet.menu_color};' + """
+        border-top: 1px solid """ + f'{self.stylesheet.menu_border};' + """
+      }
+    """)
     self.setStatusBar(status_bar)
-  ############################################################################
-  ############################# Helper Functions #############################
-  ############################################################################
+
+############################################################################
+############################# Helper Functions #############################
+############################################################################
   ############# Menu Bar - File #############
   def __NewFile(button_state):
     print("Creating a new file")
