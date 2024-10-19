@@ -2,7 +2,7 @@
 ## Overview
 Python program that can create multiple files in order to speed up your workload. Ever notice you always open 3 specific programs at the same time as each other? Well now you can run one program and all 3 will be executed at the same time!
 
-Created by: Broken_Apples
+Created by: BroknApples
 
 ## Features
 TODO: Add stuff here
@@ -25,4 +25,4 @@ TODO: Add stuff here
 * PyQt6
 
 ## License
-MIT License
+[MIT License](https://github.com/BroknApples/Multi-Program-Runner-Script/main/LICENSE.md)
