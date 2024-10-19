@@ -25,4 +25,4 @@ TODO: Add stuff here
 * PyQt6
 
 ## License
-[MIT License](https://github.com/BroknApples/Multi-Program-Runner-Script/LICENSE.md)
+[MIT License](https://github.com/BroknApples/Multi-Program-Runner-Script/blob/main/LICENSE.md)
